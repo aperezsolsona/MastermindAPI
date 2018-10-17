@@ -59,6 +59,23 @@ class Guess
     protected $board;
 
 
+    /**
+     * Guess constructor.
+     *
+     * @param string $pegs
+     * @param integer $blackPegs
+     * @param integer $whitePegs
+     * @param boolean $isCorrect
+     * @param Board $board
+     */
+    public function __construct($pegs, $blackPegs, $whitePegs, $isCorrect, $board)
+    {
+        $this->pegs = $pegs;
+        $this->blackPegs = $blackPegs;
+        $this->whitePegs = $whitePegs;
+        $this->isCorrect = $isCorrect;
+        $this->board = $board;
+    }
 
     /**
      * @return mixed
@@ -77,27 +94,11 @@ class Guess
     }
 
     /**
-     * @param mixed $pegs
-     */
-    public function setPegs($pegs): void
-    {
-        $this->pegs = $pegs;
-    }
-
-    /**
      * @return mixed
      */
     public function getCreatedAt()
     {
         return $this->createdAt;
-    }
-
-    /**
-     * @param mixed $createdAt
-     */
-    public function setCreatedAt($createdAt)
-    {
-        $this->createdAt = $createdAt;
     }
 
     /**
@@ -109,14 +110,6 @@ class Guess
     }
 
     /**
-     * @param mixed $blackPegs
-     */
-    public function setBlackPegs($blackPegs): void
-    {
-        $this->blackPegs = $blackPegs;
-    }
-
-    /**
      * @return mixed
      */
     public function getWhitePegs()
@@ -125,27 +118,11 @@ class Guess
     }
 
     /**
-     * @param mixed $whitePegs
-     */
-    public function setWhitePegs($whitePegs): void
-    {
-        $this->whitePegs = $whitePegs;
-    }
-
-    /**
      * @return mixed
      */
-    public function getisCorrect()
+    public function getIsCorrect()
     {
         return $this->isCorrect;
-    }
-
-    /**
-     * @param mixed $isCorrect
-     */
-    public function setIsCorrect($isCorrect): void
-    {
-        $this->isCorrect = $isCorrect;
     }
 
     /**
@@ -157,21 +134,13 @@ class Guess
     }
 
     /**
-     * @param mixed $board
-     */
-    public function setBoard($board)
-    {
-        $this->board = $board;
-    }
-
-    /**
      * @ORM\PrePersist
      */
     public function updatedTimestamp()
     {
         $dateTimeNow = new \DateTime('now');
         if ($this->getCreatedAt() === null) {
-            $this->setCreatedAt($dateTimeNow);
+            $this->createdAt = $dateTimeNow;
         }
     }
 

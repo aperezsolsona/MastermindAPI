@@ -44,43 +44,6 @@ class RestService
     }
 
     /**
-     * @param string $pegsCodeJson
-     * @param integer $boardId
-     * @return Guess|null
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
-     * @throws \MastermindAPI\Exception\ValidationException
-     */
-    public function addGuess($pegsCodeJson, $boardId) {
-
-        if ($this->mastermind->validateCode($pegsCodeJson)) {
-
-            if (!empty($boardId)){
-                /** @var Board $board */
-                $board = $this->em->find('MastermindAPI\Entity\Board', $boardId);
-
-                $guessResult = $this->mastermind->evaluateGuess(
-                    json_decode($board->getCode()),
-                    json_decode($pegsCodeJson)
-                );
-
-                $guess = new Guess();
-                $guess->setBoard($board);
-                $guess->setPegs($pegsCodeJson);
-                $guess->setBlackPegs($guessResult->getBlackPegs());
-                $guess->setWhitePegs($guessResult->getWhitePegs());
-                $guess->setIsCorrect($guessResult->isCorrectGuess());
-                $this->em->persist($guess);
-                $this->em->flush();
-            }
-        } else {
-            $guess = null;
-        }
-        return $guess;
-    }
-
-    /**
      * @param string $codeJson
      * @return Board|null
      * @throws \Doctrine\ORM\ORMException
@@ -95,11 +58,9 @@ class RestService
 
         $board = null;
         if ($this->mastermind->validateCode($codeJson)) {
-            $board = new Board();
-            $board->setCode($codeJson);
+            $board = new Board($codeJson);
             $this->em->persist($board);
             $this->em->flush();
-
         }
         return $board;
     }
@@ -121,6 +82,44 @@ class RestService
 
         return $board;
 
+    }
+
+    /**
+     * @param string $pegsCodeJson
+     * @param integer $boardId
+     * @return Guess|null
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \MastermindAPI\Exception\ValidationException
+     */
+    public function addGuess($pegsCodeJson, $boardId) {
+
+        if ($this->mastermind->validateCode($pegsCodeJson)) {
+
+            if (!empty($boardId)){
+                /** @var Board $board */
+                $board = $this->em->find('MastermindAPI\Entity\Board', $boardId);
+
+                $guessResult = $this->mastermind->evaluateGuess(
+                    json_decode($board->getCode()),
+                    json_decode($pegsCodeJson)
+                );
+
+                $guess = new Guess(
+                    $pegsCodeJson,
+                    $guessResult->getBlackPegs(),
+                    $guessResult->getWhitePegs(),
+                    $guessResult->isCorrectGuess(),
+                    $board
+                );
+                $this->em->persist($guess);
+                $this->em->flush();
+            }
+        } else {
+            $guess = null;
+        }
+        return $guess;
     }
 
 }

@@ -45,8 +45,9 @@ class Board
     protected $guesses;
 
 
-    public function __construct()
+    public function __construct($code)
     {
+        $this->code = $code;
         $this->guesses = new ArrayCollection();
     }
 
@@ -63,25 +64,17 @@ class Board
     /**
      * @return mixed
      */
-    public function getGuesses()
-    {
-        return $this->guesses;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getCode()
     {
         return $this->code;
     }
 
     /**
-     * @param mixed $code
+     * @return mixed
      */
-    public function setCode($code): void
+    public function getGuesses()
     {
-        $this->code = $code;
+        return $this->guesses;
     }
 
     /**
@@ -92,13 +85,7 @@ class Board
         return $this->createdAt;
     }
 
-    /**
-     * @param mixed $createdAt
-     */
-    public function setCreatedAt($createdAt)
-    {
-        $this->createdAt = $createdAt;
-    }
+
 
     /**
      * @ORM\PrePersist
@@ -107,7 +94,7 @@ class Board
     {
         $dateTimeNow = new \DateTime('now');
         if ($this->getCreatedAt() === null) {
-            $this->setCreatedAt($dateTimeNow);
+            $this->createdAt = $dateTimeNow;
         }
     }
 }
