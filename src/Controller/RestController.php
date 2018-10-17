@@ -151,6 +151,7 @@ class RestController extends FOSRestController
             $error = false;
             $boardId = $id;
 
+            /** @var Board $board */
             $board = $em->find('MastermindAPI\Entity\Board', $boardId);
             //$board = $em->getRepository("MastermindAPI:Board")->find($boardId);
 
@@ -169,7 +170,7 @@ class RestController extends FOSRestController
         $response = [
             'code' => $code,
             'error' => $error,
-            'data' => $code == 200 ? $board : $message,
+            'data' => $code == 200 ? $board->getGuesses() : $message,
         ];
 
         return new Response($serializer->serialize($response, "json"));
@@ -235,17 +236,19 @@ class RestController extends FOSRestController
                     $board = $em->find('MastermindAPI\Entity\Board', $boardId);
                     //$board = $em->getRepository("MastermindAPI:Board")->find($boardId);
 
-                    $guess = new Guess();
-                    $guess->setBoard($board);
-                    $guess->setPegs($pegsJson);
-                    $em->persist($guess);
-                    $em->flush();
-
                     $guessResult = $mastermind->evaluateGuess(
                         json_decode($board->getCode()),
                         json_decode($pegsJson)
                     );
 
+                    $guess = new Guess();
+                    $guess->setBoard($board);
+                    $guess->setPegs($pegsJson);
+                    $guess->setBlackPegs($guessResult->getBlackPegs());
+                    $guess->setWhitePegs($guessResult->getWhitePegs());
+                    $guess->setIsCorrect($guessResult->isCorrectGuess());
+                    $em->persist($guess);
+                    $em->flush();
 
                 }
 
@@ -271,7 +274,7 @@ class RestController extends FOSRestController
         $response = [
             'code' => $responseCode,
             'error' => $error,
-            'data' => $responseCode == 201 ? $guessResult : $message,
+            'data' => $responseCode == 201 ? $guess : $message,
         ];
 
         return new Response($serializer->serialize($response, "json"));

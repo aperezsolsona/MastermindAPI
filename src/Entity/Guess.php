@@ -36,12 +36,29 @@ class Guess
     protected $createdAt;
 
     /**
+     * @ORM\Column(name="black_pegs", type="integer", options={"default":0})
+     */
+    protected $blackPegs;
+
+    /**
+     * @ORM\Column(name="white_pegs", type="integer", options={"default":0})
+     */
+    protected $whitePegs;
+
+    /**
+     * @ORM\Column(name="is_correct", type="boolean", options={"default":false})
+     */
+    protected $isCorrect;
+
+    /**
      * @ORM\ManyToOne(targetEntity="MastermindAPI\Entity\Board", inversedBy="guesses")
      * @ORM\JoinColumn(name="board_id", referencedColumnName="id")
      * @Serializer\Exclude()
      *
      */
     protected $board;
+
+
 
     /**
      * @return mixed
@@ -83,6 +100,53 @@ class Guess
         $this->createdAt = $createdAt;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getBlackPegs()
+    {
+        return $this->blackPegs;
+    }
+
+    /**
+     * @param mixed $blackPegs
+     */
+    public function setBlackPegs($blackPegs): void
+    {
+        $this->blackPegs = $blackPegs;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWhitePegs()
+    {
+        return $this->whitePegs;
+    }
+
+    /**
+     * @param mixed $whitePegs
+     */
+    public function setWhitePegs($whitePegs): void
+    {
+        $this->whitePegs = $whitePegs;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getisCorrect()
+    {
+        return $this->isCorrect;
+    }
+
+    /**
+     * @param mixed $isCorrect
+     */
+    public function setIsCorrect($isCorrect): void
+    {
+        $this->isCorrect = $isCorrect;
+    }
 
     /**
      * @return mixed
