@@ -9,11 +9,13 @@
         "friendsofsymfony/rest-bundle": "^2.4",
         "jms/serializer-bundle": "^2.4",
         "nelmio/api-doc-bundle": "^3.3",
+        "symfony/asset": "*",
         "symfony/console": "*",
         "symfony/flex": "^1.1",
         "symfony/framework-bundle": "*",
         "symfony/orm-pack": "^1.0",
         "symfony/property-access": "*",
+        "symfony/twig-bundle": "*",
         "symfony/yaml": "*"
     },
     "require-dev": {
