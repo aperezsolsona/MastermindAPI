@@ -12,6 +12,7 @@
 
 namespace MastermindAPI\Controller;
 
+use MastermindAPI\DTO\RestResponseDTO;
 use MastermindAPI\Entity\Board;
 use MastermindAPI\Entity\Guess;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -24,6 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Swagger\Annotations as SWG;
 
 
@@ -50,17 +52,20 @@ class RestController extends FOSRestController
      *
      * @SWG\Response(
      *     response=201,
-     *     description="Mastermind Board was created successfully"
+     *     description="Mastermind Board was created successfully",
+     *     @Model(type=RestResponseDTO::class)
      * )
      *
      * @SWG\Response(
      *     response=400,
-     *     description="A validation error occurred trying to create Mastermind board"
+     *     description="A validation error occurred trying to create Mastermind board",
+     *     @Model(type=RestResponseDTO::class)
      * )
      *
      * @SWG\Response(
      *     response=500,
-     *     description="An error occurred trying to create Mastermind board"
+     *     description="An error occurred trying to create Mastermind board",
+     *     @Model(type=RestResponseDTO::class)
      * )
      *
      * @SWG\Parameter(
@@ -96,11 +101,11 @@ class RestController extends FOSRestController
             $message = "An error has occurred trying to create new Mastermind board - Error: {$ex->getMessage()}";
         }
 
-        $response = [
-            'code' => $responseCode,
-            'error' => $error,
-            'data' => $responseCode == 201 ? $board : $message,
-        ];
+        $response = new RestResponseDTO(
+            $responseCode,
+            $error,
+            $responseCode == 201 ? $board : $message
+        );
         return new Response($serializer->serialize($response, "json"));
 
     }
@@ -111,12 +116,14 @@ class RestController extends FOSRestController
      *
      * @SWG\Response(
      *     response=200,
-     *     description="Gets board info based on passed ID parameter."
+     *     description="Gets board info based on passed ID parameter.",
+     *     @Model(type=\MastermindAPI\DTO\RestResponseDTO::class)
      * )
      *
      * @SWG\Response(
-     *     response=400,
-     *     description="The board with the passed ID parameter was not found or doesn't exist."
+     *     response=404,
+     *     description="The board with the passed ID parameter was not found or doesn't exist.",
+     *     @Model(type=\MastermindAPI\DTO\RestResponseDTO::class)
      * )
      *
      * @SWG\Parameter(
@@ -142,7 +149,7 @@ class RestController extends FOSRestController
             $board = $this->restService->getBoard((integer) $id);
 
             if (empty($board)) {
-                $code = 500;
+                $code = 404;
                 $error = true;
                 $message = "The board does not exist";
             }
@@ -153,12 +160,11 @@ class RestController extends FOSRestController
             $message = "An error has occurred trying to get the current Board - Error: {$ex->getMessage()}";
         }
 
-        $response = [
-            'code' => $code,
-            'error' => $error,
-            'data' => $code == 200 ? $board->getGuesses() : $message,
-        ];
-
+        $response = new RestResponseDTO(
+            $code,
+            $error,
+            $code == 200 ? $board : $message
+        );
         return new Response($serializer->serialize($response, "json"));
     }
 
@@ -169,17 +175,20 @@ class RestController extends FOSRestController
      *
      * @SWG\Response(
      *     response=201,
-     *     description="Guess was played successfully"
+     *     description="Guess was played successfully",
+     *     @Model(type=\MastermindAPI\DTO\RestResponseDTO::class)
      * )
      *
      * @SWG\Response(
      *     response=400,
-     *     description="A validation error occurred trying to place the guess"
+     *     description="A validation error occurred trying to place the guess",
+     *     @Model(type=\MastermindAPI\DTO\RestResponseDTO::class)
      * )
      *
      * @SWG\Response(
      *     response=500,
-     *     description="An error occurred trying to place the guess"
+     *     description="An error occurred trying to place the guess",
+     *     @Model(type=\MastermindAPI\DTO\RestResponseDTO::class)
      * )
      *
      * @SWG\Parameter(
@@ -225,13 +234,11 @@ class RestController extends FOSRestController
             $error = true;
             $message = "An error has occurred trying to place a guess - Error: {$ex->getMessage()}";
         }
-
-        $response = [
-            'code' => $responseCode,
-            'error' => $error,
-            'data' => $responseCode == 201 ? $guess : $message,
-        ];
-
+        $response = new RestResponseDTO(
+            $responseCode,
+            $error,
+            $responseCode == 201 ? $guess : $message
+        );
         return new Response($serializer->serialize($response, "json"));
     }
 
