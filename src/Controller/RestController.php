@@ -12,10 +12,13 @@
 
 namespace MastermindAPI\Controller;
 
+use Doctrine\ORM\Mapping\Builder\ManyToManyAssociationBuilder;
 use MastermindAPI\Entity\Board;
 use MastermindAPI\Entity\Guess;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
+use MastermindAPI\Exception\ValidationException;
+use MastermindAPI\MastermindEngine;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,6 +46,11 @@ class RestController extends FOSRestController
      * )
      *
      * @SWG\Response(
+     *     response=400,
+     *     description="A validation error occurred trying to create Mastermind board"
+     * )
+     *
+     * @SWG\Response(
      *     response=500,
      *     description="An error occurred trying to create Mastermind board"
      * )
@@ -62,7 +70,7 @@ class RestController extends FOSRestController
 
         $serializer = $this->getSerializerObject();
         $em = $this->getDoctrine()->getManager();
-
+        $mastermind = new MastermindEngine();
         $board = [];
         $message = "";
 
@@ -70,21 +78,27 @@ class RestController extends FOSRestController
             $responseCode = 201;
             $error = false;
             $codeJson = $request->request->get("code", null);
-            if (!empty($codeJson)) {
-                $codeError = $this->validatePegCode($codeJson);
+
+            if (empty($codeJson)) {
+                $codeJson = $mastermind->createRandomMastermindCode(true);
             }
 
-            if (!empty($codeJson) && empty($codeError)) {
+            if ($mastermind->validateCode($codeJson)) {
                 $board = new Board();
                 $board->setCode($codeJson);
                 $em->persist($board);
                 $em->flush();
-
             } else {
                 $responseCode = 500;
                 $error = true;
-                $message = "An error has occurred trying to create new Mastermind board - Error: Code was invalid: {" . $codeError . "}";
+                $message = "An error has occurred trying to create new Mastermind board";
             }
+
+
+        } catch (ValidationException $ex) {
+            $responseCode = 400;
+            $error = true;
+            $message = "An error has occurred trying to create new Mastermind board - {$ex->getMessage()}";
 
         } catch (Exception $ex) {
             $responseCode = 500;
@@ -172,6 +186,11 @@ class RestController extends FOSRestController
      * )
      *
      * @SWG\Response(
+     *     response=400,
+     *     description="A validation error occurred trying to place the guess"
+     * )
+     *
+     * @SWG\Response(
      *     response=500,
      *     description="An error occurred trying to place the guess"
      * )
@@ -198,37 +217,50 @@ class RestController extends FOSRestController
 
         $serializer = $this->getSerializerObject();
         $em = $this->getDoctrine()->getManager();
+        $mastermind = new MastermindEngine();
 
-        $guess = [];
+        $guessResult = [];
         $message = "";
 
         try {
             $responseCode = 201;
             $error = false;
             $pegsJson = $request->request->get("pegs", null);
-            if (!empty($pegsJson)) {
-                $pegsError = $this->validatePegCode($pegsJson);
-            }
-            $boardId = $request->request->get("board_id", null);
-            if (!empty($boardId)){
-                $board = $em->find('MastermindAPI\Entity\Board', $boardId);
-                //$board = $em->getRepository("MastermindAPI:Board")->find($boardId);
-            } else {
-                $board = null;
-            }
 
-            if (!empty($pegsJson) && !empty($board) && empty($pegsError)) {
-                $guess = new Guess();
-                $guess->setBoard($board);
-                $guess->setPegs($pegsJson);
-                $em->persist($guess);
-                $em->flush();
+            if ($mastermind->validateCode($pegsJson)) {
+
+                $boardId = $request->request->get("board_id", null);
+                if (!empty($boardId)){
+                    /** @var Board $board */
+                    $board = $em->find('MastermindAPI\Entity\Board', $boardId);
+                    //$board = $em->getRepository("MastermindAPI:Board")->find($boardId);
+
+                    $guess = new Guess();
+                    $guess->setBoard($board);
+                    $guess->setPegs($pegsJson);
+                    $em->persist($guess);
+                    $em->flush();
+
+                    $guessResult = $mastermind->evaluateGuess(
+                        json_decode($board->getCode()),
+                        json_decode($pegsJson)
+                    );
+
+
+                }
+
+
 
             } else {
                 $responseCode = 500;
                 $error = true;
-                $message = "An error has occurred trying to place a guess - Error: You must provide all the required fields";
+                $message = "An error has occurred trying to place a guess - Board ID was empty";
             }
+
+        } catch (ValidationException $ex) {
+            $responseCode = 400;
+            $error = true;
+            $message = "An error has occurred trying to place a guess - {$ex->getMessage()}";
 
         } catch (Exception $ex) {
             $responseCode = 500;
@@ -239,43 +271,10 @@ class RestController extends FOSRestController
         $response = [
             'code' => $responseCode,
             'error' => $error,
-            'data' => $responseCode == 201 ? $guess : $message,
+            'data' => $responseCode == 201 ? $guessResult : $message,
         ];
 
         return new Response($serializer->serialize($response, "json"));
-    }
-
-
-
-
-
-    /**
-     * Validates Peg code JSON
-     * @param $codeJson string in JSON format
-     * @return string with possible errors
-     */
-    private function validatePegCode($codeJson) {
-        //validate $codeJson
-        $codeArray = json_decode($codeJson, true);
-        $codeErrorCount = '';
-        if (count($codeArray) != 4) {
-            $codeErrorCount = 'There is an invalid number of pegs. Please, use 4 pegs. ';
-        }
-        $codeErrorInvalidPegs = '';
-        foreach ($codeArray as $codePeg) {
-            if (!in_array($codePeg, array('R','O','Y','G','B','V'))) {
-                $codeErrorInvalidPegs .= $codePeg.',';
-            }
-        }
-
-        $codeError = '';
-        if (!empty($codeErrorCount)) {
-            $codeError = $codeErrorCount;
-        }
-        if (!empty($codeErrorInvalidPegs)) {
-            $codeError .= 'Wrong color in some of the pegs: ' . $codeErrorInvalidPegs;
-        }
-        return $codeError;
     }
 
 
