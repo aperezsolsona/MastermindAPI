@@ -13,12 +13,12 @@ Use composer to set up the project, then proceed to configure the .env file to c
 ## Usage
 
 Once installed and with a server running, go to 
->/api/doc.json
+>your.webserver/api/doc
 
 for full API documentation and response codes.
 
 ### Create game
->/api/v1/board **POST**
+>your.webserver/api/v1/board **POST**
 
 Creates a new game. 
 
@@ -30,7 +30,7 @@ You can send the POST request as is, without parameters, to get a randomly gener
 ex. code: ["B", "R", "O", "B"] 
 
 ### Place guess
->/api/v1/guess **POST**
+>your.webserver/api/v1/guess **POST**
 ##### Parameters
 - **board_id**: (required)
 
