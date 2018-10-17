@@ -17,7 +17,7 @@ Once installed and with a server running, go to
 
 for full API documentation and response codes.
 
-###Create game
+### Create game
 >/api/v1/board **POST**
 
 Creates a new game. 
@@ -29,7 +29,7 @@ You can send the POST request as is, without parameters, to get a randomly gener
 
 ex. code: ["B", "R", "O", "B"] 
 
-###Place guess
+### Place guess
 >/api/v1/guess **POST**
 ##### Parameters
 - **board_id**: (required)
@@ -40,7 +40,7 @@ The board id given when a game was created.
 Your guess code in JSON format as follows
 
 ex. code: ["B", "R", "O", "B"] 
-###Check historic
+### Check historic
 >/api/v1/board/{id} **GET**
 
 Outputs the list of guesses played against the board represented by {id}
