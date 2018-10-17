@@ -12,13 +12,12 @@
 
 namespace MastermindAPI\Controller;
 
-use Doctrine\ORM\Mapping\Builder\ManyToManyAssociationBuilder;
 use MastermindAPI\Entity\Board;
 use MastermindAPI\Entity\Guess;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use MastermindAPI\Exception\ValidationException;
-use MastermindAPI\MastermindEngine;
+use MastermindAPI\Service\RestService;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,6 +35,15 @@ use Swagger\Annotations as SWG;
  */
 class RestController extends FOSRestController
 {
+    /**
+     * @var RestService
+     */
+    protected $restService;
+
+    public function __construct(RestService $restService)
+    {
+        $this->restService = $restService;
+    }
 
     /**
      * @Rest\Post("/v1/board.{_format}", name="board_create", defaults={"_format":"json"})
@@ -69,32 +77,14 @@ class RestController extends FOSRestController
     public function createBoardAction(Request $request) {
 
         $serializer = $this->getSerializerObject();
-        $em = $this->getDoctrine()->getManager();
-        $mastermind = new MastermindEngine();
-        $board = [];
+        $board = null;
         $message = "";
 
         try {
             $responseCode = 201;
             $error = false;
             $codeJson = $request->request->get("code", null);
-
-            if (empty($codeJson)) {
-                $codeJson = $mastermind->createRandomMastermindCode(true);
-            }
-
-            if ($mastermind->validateCode($codeJson)) {
-                $board = new Board();
-                $board->setCode($codeJson);
-                $em->persist($board);
-                $em->flush();
-            } else {
-                $responseCode = 500;
-                $error = true;
-                $message = "An error has occurred trying to create new Mastermind board";
-            }
-
-
+            $board = $this->restService->addBoard($codeJson);
         } catch (ValidationException $ex) {
             $responseCode = 400;
             $error = true;
@@ -136,26 +126,22 @@ class RestController extends FOSRestController
      *     description="The board ID"
      * )
      *
-     *
      * @SWG\Tag(name="Board")
      */
     public function getBoardAction(Request $request, $id) {
-        $serializer = $this->getSerializerObject();
-        $em = $this->getDoctrine()->getManager();
 
-        $board = [];
+        $serializer = $this->getSerializerObject();
+        /** @var Board $board */
+        $board = null;
         $message = "";
 
         try {
             $code = 200;
             $error = false;
-            $boardId = $id;
 
-            /** @var Board $board */
-            $board = $em->find('MastermindAPI\Entity\Board', $boardId);
-            //$board = $em->getRepository("MastermindAPI:Board")->find($boardId);
+            $board = $this->restService->getBoard((integer) $id);
 
-            if (is_null($board)) {
+            if (empty($board)) {
                 $code = 500;
                 $error = true;
                 $message = "The board does not exist";
@@ -217,48 +203,17 @@ class RestController extends FOSRestController
     public function addGuessAction(Request $request) {
 
         $serializer = $this->getSerializerObject();
-        $em = $this->getDoctrine()->getManager();
-        $mastermind = new MastermindEngine();
 
-        $guessResult = [];
+        /** @var Guess $guess */
+        $guess = null;
         $message = "";
 
         try {
             $responseCode = 201;
             $error = false;
             $pegsJson = $request->request->get("pegs", null);
-
-            if ($mastermind->validateCode($pegsJson)) {
-
-                $boardId = $request->request->get("board_id", null);
-                if (!empty($boardId)){
-                    /** @var Board $board */
-                    $board = $em->find('MastermindAPI\Entity\Board', $boardId);
-                    //$board = $em->getRepository("MastermindAPI:Board")->find($boardId);
-
-                    $guessResult = $mastermind->evaluateGuess(
-                        json_decode($board->getCode()),
-                        json_decode($pegsJson)
-                    );
-
-                    $guess = new Guess();
-                    $guess->setBoard($board);
-                    $guess->setPegs($pegsJson);
-                    $guess->setBlackPegs($guessResult->getBlackPegs());
-                    $guess->setWhitePegs($guessResult->getWhitePegs());
-                    $guess->setIsCorrect($guessResult->isCorrectGuess());
-                    $em->persist($guess);
-                    $em->flush();
-
-                }
-
-
-
-            } else {
-                $responseCode = 500;
-                $error = true;
-                $message = "An error has occurred trying to place a guess - Board ID was empty";
-            }
+            $boardId = $request->request->get("board_id", null);
+            $guess = $this->restService->addGuess($pegsJson, (integer) $boardId);
 
         } catch (ValidationException $ex) {
             $responseCode = 400;

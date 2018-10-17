@@ -10,13 +10,13 @@ namespace MastermindAPI\Test;
 
 use MastermindAPI\DTO\GuessResultDTO;
 use MastermindAPI\Exception\ValidationException;
-use MastermindAPI\MastermindEngine;
+use MastermindAPI\Service\MastermindService;
 use PHPUnit\Framework\TestCase;
 
 
 //require_once 'MastermindTestCase.php';
 
-final class MastermindEngineTest extends TestCase
+final class MastermindServiceTest extends TestCase
 {
 
     /**
@@ -24,7 +24,7 @@ final class MastermindEngineTest extends TestCase
      */
     public function testGetMatches() {
 
-        $mastermind = new MastermindEngine();
+        $mastermind = new MastermindService();
 
         $guessArray = array('R','R','O','B');
         $secretCode = array('R','R','R','R');
@@ -64,7 +64,7 @@ final class MastermindEngineTest extends TestCase
      */
     public function testNullValuesGetMAtches() {
 
-        $mastermind = new \MastermindAPI\MastermindEngine();
+        $mastermind = new MastermindService();
 
         $this->expectException(\Exception::class);
         $guessArray = array('R',null,'O','B');
@@ -84,7 +84,7 @@ final class MastermindEngineTest extends TestCase
      */
     public function testGetImperfectMatches() {
 
-        $mastermind = new \MastermindAPI\MastermindEngine();
+        $mastermind = new MastermindService();
 
         $guessArray = array(null,null,null,null);
         $secretCode = array('G','O','R','Y');
@@ -126,7 +126,7 @@ final class MastermindEngineTest extends TestCase
      */
     public function testValidateCode() {
 
-        $mastermind = new MastermindEngine();
+        $mastermind = new MastermindService();
 
         //empty arrays
         $this->expectException(ValidationException::class);
@@ -156,7 +156,7 @@ final class MastermindEngineTest extends TestCase
         $result = $mastermind->validateCode($guessArray);
 
         $this->expectException(ValidationException::class);
-        $guessArray = jsonencode(array('R','8','R','8'));
+        $guessArray = json_encode(array('R','8','R','8'));
         $result = $mastermind->validateCode($guessArray);
 
         //valid
@@ -175,7 +175,7 @@ final class MastermindEngineTest extends TestCase
      */
     public function testPrintListWithCommas(){
 
-        $mastermind = new MastermindEngine();
+        $mastermind = new MastermindService();
 
         $list = null;
         $result = $this->invokeMethod($mastermind, 'printListWithCommas', array($list));
@@ -195,7 +195,7 @@ final class MastermindEngineTest extends TestCase
      */
     public function testEvaluateGuess() {
 
-        $mastermind = new \MastermindAPI\MastermindEngine();
+        $mastermind = new MastermindService();
 
 
         $secretCode = array('G','O','R','Y'); //FIRST CODE TO CRACK
@@ -271,18 +271,18 @@ final class MastermindEngineTest extends TestCase
      * Creates random mastermind code in array or json format
      */
     public function testCreateRandomMastermindCode() {
-        $mastermind = new MastermindEngine();
+        $mastermind = new MastermindService();
         $result = $mastermind->createRandomMastermindCode(); //array
         $this->assertArrayHasKey(0, $result);
-        $this->assertArrayHasKey(MastermindEngine::NUMBER_OF_PEGS_IN_CODE - 1, $result);
-        $this->assertCount(MastermindEngine::NUMBER_OF_PEGS_IN_CODE, $result);
+        $this->assertArrayHasKey(MastermindService::NUMBER_OF_PEGS_IN_CODE - 1, $result);
+        $this->assertCount(MastermindService::NUMBER_OF_PEGS_IN_CODE, $result);
 
         $result = $mastermind->createRandomMastermindCode(true); //json
         $this->assertJson($result);
         $resultArray = json_decode($result);
         $this->assertArrayHasKey(0, $resultArray);
-        $this->assertArrayHasKey(MastermindEngine::NUMBER_OF_PEGS_IN_CODE - 1, $resultArray);
-        $this->assertCount(MastermindEngine::NUMBER_OF_PEGS_IN_CODE, $resultArray);
+        $this->assertArrayHasKey(MastermindService::NUMBER_OF_PEGS_IN_CODE - 1, $resultArray);
+        $this->assertCount(MastermindService::NUMBER_OF_PEGS_IN_CODE, $resultArray);
     }
 
     /**

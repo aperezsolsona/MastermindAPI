@@ -1,11 +1,11 @@
 <?php
 
-namespace MastermindAPI;
+namespace MastermindAPI\Service;
 
 use MastermindAPI\DTO\GuessResultDTO;
 use MastermindAPI\Exception\ValidationException;
 
-class MastermindEngine
+class MastermindService
 {
 
     const AVAILABLE_COLORS = array('R','O','Y','G','B','V');
