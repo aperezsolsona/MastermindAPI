@@ -3,12 +3,13 @@ Rest API to simulate a Mastermind game
 
 ## Installation
 
-This was developed with Symfony4 using 
+This was developed with PHP 7.2+, Symfony4 using 
 - FOSRestBundle and some other bundles to support the construction of the API part.
-- Doctrine ORM as persistence layer
+- Doctrine ORM as persistence layer, tested with MySQL
 - Symfony webserver bundle for dev purposes
 
-Use composer to set up the project, then proceed to configure the .env file to create a Database and create schema with needed tables. Check this link for more information: link.
+
+Use composer to set up the project, then proceed to configure the .env file to create a Database and create schema with needed tables.
  
 ## Usage
 
@@ -47,6 +48,7 @@ Outputs the list of guesses played against the board represented by {id}
 
 ## Design considerations
 
+- This code has been left in verbose mode, i.e. if this was for a real game API, the output would not show the board's code, it would remain secret.
 - REST api has been developed only with JSON as available transfer encoding.
 - Output and design has been kept as minimal as possible for time optimization.
 - No game restrictions have been put in place, such as blocking new guesses to already solved boards, or maximum number of guesses.
