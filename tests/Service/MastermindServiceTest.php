@@ -14,50 +14,29 @@ use MastermindAPI\Service\MastermindService;
 use PHPUnit\Framework\TestCase;
 
 
-//require_once 'MastermindTestCase.php';
-
 final class MastermindServiceTest extends TestCase
 {
 
-    /**
-     *
-     */
-    public function testGetMatches() {
 
-        $mastermind = new MastermindService();
-
-        $guessArray = array('R','R','O','B');
-        $secretCode = array('R','R','R','R');
-        $result = $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode));
-        $this->assertEquals(2, $result);
-
-        $guessArray = array('R','O','O','B');
-        $secretCode = array('R','R','O','R');
-        $result = $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode));
-        $this->assertEquals(2, $result);
-
-        $guessArray = array('R','O','O','B');
-        $secretCode = array('R','R','O','B');
-        $result = $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode));
-        $this->assertEquals(3, $result);
-
-        $guessArray = array('R','Y','O','B');
-        $secretCode = array('R','Y','O','B');
-        $result = $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode));
-        $this->assertEquals(4, $result);
-
-        $guessArray = array('R','R','R','R');
-        $secretCode = array('R','R','R','R');
-        $result = $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode));
-        $this->assertEquals(4, $result);
-
-        $guessArray = array('R','Y','O','R');
-        $secretCode = array('R','Y','O','R');
-        $result = $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode));
-        $this->assertEquals(4, $result);
-
+    public function getMatchesProvider()
+    {
+        return [
+            [array('R','R','O','B'),  array('R','R','R','R'), 2],
+            [array('R','O','O','B'),  array('R','R','O','R'), 2],
+            [array('R','O','O','B'),  array('R','R','O','B'), 3],
+            [array('R','Y','O','B'),  array('R','Y','O','B'), 4],
+            [array('R','R','R','R'),  array('R','R','R','R'), 4],
+            [array('R','Y','O','R'),  array('R','Y','O','R'), 4],
+        ];
     }
-
+    /**
+     * @dataProvider getMatchesProvider
+     */
+    public function testGetMatchesProvider($guessArray, $secretCode, $expected)
+    {
+        $mastermind = new MastermindService();
+        $this->assertEquals($expected, $this->invokeMethod($mastermind, 'getMatches', array(&$guessArray, &$secretCode)));
+    }
 
     /**
      *
@@ -79,46 +58,29 @@ final class MastermindServiceTest extends TestCase
     }
 
 
+
+    public function getImperfectMatchesProvider()
+    {
+        return [
+            [array(null,null,null,null),  array('G','O','R','Y'), 0],
+            [array('R',null,null,null),  array('G','O','R','Y'), 1],
+            [array('R',null,'Y','O'),  array('R','R','O','R'), 2],
+            [array('R','G','Y','O'),  array('R','R','O','B'), 2],
+            [array('R',null,null,null),  array('G',null,'R',null), 1],
+            [array('R','G',null,null),  array('G',null,'R',null), 2],
+            [array(null,null,'R',null),  array('G',null,'R',null), 1],
+        ];
+        // Last case represents one white peg in same position.
+        // This case is exact match, but full algorythm should not reach this case. Anyway, doesnt crash.
+    }
+
     /**
-     *
+     * @dataProvider getImperfectMatchesProvider
      */
-    public function testGetImperfectMatches() {
-
+    public function testGetImperfectMatchesProvider($guessArray, $secretCode, $expected)
+    {
         $mastermind = new MastermindService();
-
-        $guessArray = array(null,null,null,null);
-        $secretCode = array('G','O','R','Y');
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(0, $result); //empty case, no white pegs
-
-        $guessArray = array('R',null,null,null);
-        $secretCode = array('G','O','R','Y');
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(1, $result); // one white peg
-
-        $guessArray = array('R',null,'Y','O');
-        $secretCode = array('G','O','R','Y');
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(3, $result); // three white pegs
-        $guessArray = array('R','G','Y','O');
-        $secretCode = array('G','O','R','Y');
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(4, $result); // four white pegs
-
-        $guessArray = array('R',null,null,null);
-        $secretCode = array('G',null,'R',null);
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(1, $result); // one white peg
-
-        $guessArray = array('R','G',null,null);
-        $secretCode = array('G',null,'R',null);
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(2, $result); // one white peg
-
-        $guessArray = array(null,null,'R',null);
-        $secretCode = array('G',null,'R',null);
-        $result = $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode));
-        $this->assertEquals(1, $result); // one white peg in same position. This case is exact match, but algorythm should not reach this case. Anyway, doesnt crash.
+        $this->assertEquals($expected, $this->invokeMethod($mastermind, 'getImperfectMatches', array($guessArray, $secretCode)));
     }
 
     /**
