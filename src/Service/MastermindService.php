@@ -24,20 +24,15 @@ class MastermindService
      */
     private function getMatches(&$guessArray, &$secretCodeArray)
     {
-
+        $blackMatches = 0;
         foreach ($secretCodeArray as $indexSecretCodeVal => $secretCodeVal) {
             if($secretCodeVal == $guessArray[$indexSecretCodeVal]) {
                 $secretCodeArray[$indexSecretCodeVal] = $guessArray[$indexSecretCodeVal] = null;
+                $blackMatches++;
             }
         }
 
-        //returning the number of emptied spaces in array aka Black Matches
-        return count(
-            array_filter($secretCodeArray, function($x) {
-                return empty($x);
-            }
-            )
-        );
+        return $blackMatches;
 
     }
 
