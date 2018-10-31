@@ -16,6 +16,8 @@ class MastermindService
      * This function will return perfect matches and
      * modify the referenced array params so matched pegs will be emptied
      *
+     * No array value finding functions have been used here for algorithmic clarity purposes
+     *
      * @param $guessArray
      * @param $secretCodeArray
      * @return int
@@ -37,6 +39,10 @@ class MastermindService
     }
 
     /**
+     * This function returns matches in different positions based in already iterated arrays
+     *
+     * No array value finding functions have been used here for algorithmic clarity purposes
+     *
      * @param $guessArray
      * @param $secretCodeArray
      * @return int number of color matches
